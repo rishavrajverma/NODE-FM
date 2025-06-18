@@ -1,0 +1,8 @@
+# Node.js dependencies
+node_modules/
+
+# Optional: Ignore logs, environment files, and build output
+*.log
+.env
+dist/
+build/
