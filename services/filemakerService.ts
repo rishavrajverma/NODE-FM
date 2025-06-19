@@ -1,4 +1,4 @@
-import { axiosInstance, invalidateToken } from "../utility/FilemakerClient";
+import { axiosInstance, invalidateToken } from "../utility/filemakerClient";
 
 const retryRequest = async (callback: () => Promise<any>) => {
   try {
