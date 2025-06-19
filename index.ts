@@ -1,17 +1,14 @@
 import express from "express";
 import bodyParser from "body-parser";
-import { AdminRoute } from "./routes";
-import customerRoutes from "./routes/CustomerRoutes";
+import { fileMakerRoutes } from "./routes";
 
 const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use("/admin", AdminRoute);
-app.use("/api", customerRoutes);
+app.use("/api/filemaker", fileMakerRoutes);
 
 app.listen(8000, () => {
-  console.clear();
-  console.log("App is running on port 8000");
+  console.log(" Server running on http://localhost:8000");
 });

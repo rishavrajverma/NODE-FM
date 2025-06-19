@@ -1,2 +1,1 @@
-export * from "./AdminRoutes";
-export * from "./CustomerRoutes";
+export { default as fileMakerRoutes } from "./FileMakerRoutes";

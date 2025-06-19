@@ -1,70 +1,63 @@
-import axios from "axios";
-import https from "https";
-import dotenv from "dotenv";
-dotenv.config();
+import { axiosInstance, invalidateToken } from "../utility/FilemakerClient";
 
-const { FM_HOST, FM_DATABASE, FM_USER, FM_PASS } = process.env;
-
-const baseURL = `${FM_HOST}/fmi/data/v1/databases/${FM_DATABASE}`;
-
-const httpsAgent = new https.Agent({
-  rejectUnauthorized: false,
-});
-
-export const getToken = async () => {
+const retryRequest = async (callback: () => Promise<any>) => {
   try {
-    const response = await axios.post(
-      `${baseURL}/sessions`,
-      {},
-      {
-        auth: {
-          username: FM_USER!,
-          password: FM_PASS!,
-        },
-        httpsAgent,
-      }
-    );
-
-    console.log("Token Response:", response.data);
-    return response.data.response.token;
-  } catch (error: any) {
-    console.error("Failed to get token");
-    //error respose from filemaker :
-    if (error.response) {
-      console.error("Status:", error.response.status);
-      console.error("Response data:", error.response.data);
-    } else {
-      console.error("Request setup error:", error.message);
+    return await callback();
+  } catch (err: any) {
+    const code = err?.response?.data?.messages?.[0]?.code;
+    if (code === "952") {
+      console.warn("Token expired. Retrying with a new token...");
+      invalidateToken();
+      return await callback();
     }
 
-    console.debug("Axios config (trimmed):", {
-      method: error.config?.method,
-      url: error.config?.url,
-      headers: error.config?.headers,
-      data: error.config?.data,
-    });
-
-    throw new Error("Unable to connect to FileMaker server.");
+    const message = err?.response?.data?.messages?.[0]?.message || err.message;
+    throw new Error(`FileMaker API Error: ${message}`);
   }
 };
 
-export const getCustomers = async () => {
-  try {
-    const token = await getToken();
+// Fetch all records
+export const fetchRecords = async (layout: string) =>
+  retryRequest(async () => {
+    const client = await axiosInstance();
+    const res = await client.get(`/layouts/${layout}/records`);
+    return res.data.response.data;
+  });
 
-    const response = await axios.get(`${baseURL}/layouts/Customer/records`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      httpsAgent,
+// Fetch single record
+export const fetchRecordById = async (layout: string, id: string) =>
+  retryRequest(async () => {
+    const client = await axiosInstance();
+    const res = await client.get(`/layouts/${layout}/records/${id}`);
+    return res.data.response.data;
+  });
+
+// Create new record
+export const createRecord = async (layout: string, fieldData: any) =>
+  retryRequest(async () => {
+    const client = await axiosInstance();
+    const res = await client.post(`/layouts/${layout}/records`, { fieldData });
+    return res.data.response;
+  });
+
+// Update record
+export const updateRecord = async (
+  layout: string,
+  recordId: string,
+  fieldData: any
+) =>
+  retryRequest(async () => {
+    const client = await axiosInstance();
+    const res = await client.patch(`/layouts/${layout}/records/${recordId}`, {
+      fieldData,
     });
+    return res.data.response;
+  });
 
-    return response.data.response.data;
-  } catch (error: any) {
-    console.error(
-      " Error fetching customers:",
-      error?.response?.data || error.message
-    );
-    throw new Error("Failed to fetch customers");
-  }
-};
+// Delete record
+export const deleteRecord = async (layout: string, recordId: string) =>
+  retryRequest(async () => {
+    const client = await axiosInstance();
+    const res = await client.delete(`/layouts/${layout}/records/${recordId}`);
+    return res.data.response;
+  });
