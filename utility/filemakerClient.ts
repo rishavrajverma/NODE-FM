@@ -25,7 +25,7 @@ const requestNewToken = async (): Promise<string> => {
   );
   const token: string = response.data.response.token;
   tokenCache = token;
-  console.log("New token generated!");
+  console.log("New FM session token generated!", token);
   return tokenCache;
 };
 

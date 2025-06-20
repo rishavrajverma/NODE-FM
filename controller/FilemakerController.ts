@@ -68,3 +68,15 @@ export const deleteExistingRecord = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+//get details by find query method
+export const getRecordsBy = async (req: Request, res: Response) => {
+  const { layout } = req.params;
+
+  try {
+    const data = await fetchRecords(layout);
+    res.json({ success: true, data });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
