@@ -36,7 +36,7 @@ export const fetchRecordById = async (layout: string, id: string) =>
 export const createRecord = async (layout: string, fieldData: any) =>
   retryRequest(async () => {
     const client = await axiosInstance();
-    const res = await client.post(`/layouts/${layout}/records`, { fieldData });
+    const res = await client.post(`/layouts/${layout}/records`, fieldData);
     return res.data.response;
   });
 
@@ -48,9 +48,11 @@ export const updateRecord = async (
 ) =>
   retryRequest(async () => {
     const client = await axiosInstance();
-    const res = await client.patch(`/layouts/${layout}/records/${recordId}`, {
-      fieldData,
-    });
+    const res = await client.patch(
+      `/layouts/${layout}/records/${recordId}`,
+      fieldData
+    );
+
     return res.data.response;
   });
 
